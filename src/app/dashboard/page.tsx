@@ -158,7 +158,13 @@ export default function Dashboard() {
           <Layers className="w-5 h-5 text-solar" />
           <div>
             <h2 className="font-chakra text-sm font-bold text-white leading-none">Simulation Presets</h2>
-            <p className="text-[10px] text-gray-500 mt-1 uppercase tracking-wider">Fast configurations for environmental profiles</p>
+            {activePreset !== 'custom' ? (
+              <p className="text-[10px] text-solar mt-1 font-medium">
+                {PRESETS.find(p => p.id === activePreset)?.description}
+              </p>
+            ) : (
+              <p className="text-[10px] text-gray-500 mt-1 uppercase tracking-wider">Fast configurations for environmental profiles</p>
+            )}
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
