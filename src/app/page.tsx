@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Sun, Wind, BatteryCharging, ShieldAlert, ChevronRight, Zap, Play, Cpu, Server } from 'lucide-react';
+import { Sun, Wind, BatteryCharging, ShieldAlert, ChevronRight, Zap, Play, Cpu, Server, FileDown } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function Home() {
@@ -112,6 +112,15 @@ export default function Home() {
               <Cpu className="w-4 h-4 text-wind" />
               <span>Explore Math & EMS</span>
             </Link>
+
+            <a
+              href="/Hybrid-renewable-energy-generation-solution/Hybrid_Renewable_Energy_Report.docx"
+              download
+              className="inline-flex items-center justify-center space-x-3 px-8 py-4 rounded-lg bg-panel hover:bg-white/5 border border-panel-border text-white font-chakra font-medium text-base transition-colors duration-300 hover:border-battery/50"
+            >
+              <FileDown className="w-4 h-4 text-battery" />
+              <span>Download Word Report</span>
+            </a>
           </motion.div>
         </motion.div>
 
