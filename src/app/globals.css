@@ -45,3 +45,23 @@ h1, h2, h3, h4, h5, h6 {
 ::-webkit-scrollbar-thumb:hover {
   background: #22d3ee;
 }
+
+/* Real-time power flow SVG animations */
+@keyframes flow-animation {
+  from {
+    stroke-dashoffset: 20;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.flow-active {
+  stroke-dasharray: 6, 4;
+  animation: flow-animation 0.8s linear infinite;
+}
+
+.flow-reverse {
+  stroke-dasharray: 6, 4;
+  animation: flow-animation 0.8s linear infinite reverse;
+}

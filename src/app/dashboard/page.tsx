@@ -6,7 +6,8 @@ import { PRESETS, Preset } from '@/lib/presets';
 import { 
   Sun, Wind, Battery, Zap, HelpCircle, AlertCircle, Play, 
   ChevronRight, RefreshCw, Layers, TrendingUp, DollarSign, Leaf,
-  ChevronDown, ChevronUp, BarChart2, CheckCircle2, Info
+  ChevronDown, ChevronUp, BarChart2, CheckCircle2, Info,
+  Pause, SkipForward, SkipBack, Terminal, Download, Activity
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -20,6 +21,23 @@ export default function Dashboard() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Auto-play states
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [playSpeed, setPlaySpeed] = useState<number>(1000); // ms
+
+  // Auto-play interval hook
+  useEffect(() => {
+    let interval: any = null;
+    if (isPlaying) {
+      interval = setInterval(() => {
+        setSelectedHour(prev => (prev + 1) % 24);
+      }, playSpeed);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isPlaying, playSpeed]);
 
   // Simulation Parameters state
   const [params, setParams] = useState<SimulationParams>({
@@ -551,6 +569,234 @@ export default function Dashboard() {
                   {statusDetails.desc}
                 </p>
               </div>
+            </div>
+          </div>
+
+          {/* DYNAMIC TELEMETRY FLOW SCHEMATIC & AUTO-PLAY TERMINAL */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            {/* Real-time Power Flow Schematic (2 cols) */}
+            <div className="lg:col-span-2 rounded-xl border border-panel-border bg-panel/60 p-5 shadow-lg flex flex-col gap-4">
+              <div className="flex items-center justify-between border-b border-panel-border/50 pb-3">
+                <div className="flex items-center space-x-2">
+                  <Activity className="w-4 h-4 text-wind" />
+                  <span className="font-chakra text-sm font-bold text-white tracking-wider">LIVE MICROGRID POWER FLOW SCHEMATIC</span>
+                </div>
+                <span className="text-[10px] text-gray-500 font-mono">Real-time system mapping at {String(selectedHour).padStart(2, '0')}:00</span>
+              </div>
+              
+              <div className="flex items-center justify-center p-4 bg-black/40 rounded-xl border border-panel-border/50 relative overflow-hidden h-[300px]">
+                <svg viewBox="0 0 400 300" className="w-full max-w-[480px] h-auto font-mono">
+                  {/* Central Bus Node */}
+                  <rect x="175" y="130" width="50" height="20" rx="3" fill="#1c2530" stroke="#f3f4f6" strokeWidth="1.5" />
+                  <text x="200" y="142" fill="#fff" fontSize="8" textAnchor="middle" fontWeight="bold">BUS BAR</text>
+                  
+                  {/* Node: Solar PV */}
+                  <rect x="20" y="30" width="80" height="40" rx="4" fill="#0f1620" stroke="#f5a623" strokeWidth="1" />
+                  <text x="60" y="45" fill="#f5a623" fontSize="8" textAnchor="middle" fontWeight="bold">SOLAR PV</text>
+                  <text x="60" y="58" fill="#fff" fontSize="8" textAnchor="middle">{snapshot.solarGen.toFixed(1)} kW</text>
+
+                  {/* Node: Wind Turbine */}
+                  <rect x="20" y="210" width="80" height="40" rx="4" fill="#0f1620" stroke="#22d3ee" strokeWidth="1" />
+                  <text x="60" y="225" fill="#22d3ee" fontSize="8" textAnchor="middle" fontWeight="bold">WIND TURBINE</text>
+                  <text x="60" y="238" fill="#fff" fontSize="8" textAnchor="middle">{snapshot.windGen.toFixed(1)} kW</text>
+
+                  {/* Node: Battery */}
+                  <rect x="300" y="30" width="80" height="40" rx="4" fill="#0f1620" stroke="#34d399" strokeWidth="1" />
+                  <text x="340" y="45" fill="#34d399" fontSize="8" textAnchor="middle" fontWeight="bold">STORAGE BAT</text>
+                  <text x="340" y="58" fill="#fff" fontSize="8" textAnchor="middle">{snapshot.batterySOCPercent.toFixed(0)}% SOC</text>
+
+                  {/* Node: Grid */}
+                  <rect x="300" y="210" width="80" height="40" rx="4" fill="#0f1620" stroke={snapshot.gridImport > 0 ? '#fb7185' : '#60a5fa'} strokeWidth="1" />
+                  <text x="340" y="225" fill={snapshot.gridImport > 0 ? '#fb7185' : '#60a5fa'} fontSize="8" textAnchor="middle" fontWeight="bold">UTILITY GRID</text>
+                  <text x="340" y="238" fill="#fff" fontSize="8" textAnchor="middle">
+                    {snapshot.gridImport > 0 ? `-${snapshot.gridImport.toFixed(1)} kW` : `+${snapshot.gridExport.toFixed(1)} kW`}
+                  </text>
+
+                  {/* Node: Load */}
+                  <rect x="155" y="240" width="90" height="40" rx="4" fill="#0f1620" stroke="#f3f4f6" strokeWidth="1" />
+                  <text x="200" y="255" fill="#fff" fontSize="8" textAnchor="middle" fontWeight="bold">DEMAND LOAD</text>
+                  <text x="200" y="268" fill="#9ca3af" fontSize="8" textAnchor="middle">{snapshot.load.toFixed(1)} kW</text>
+
+                  {/* Static connection base lines */}
+                  <path d="M 100 50 L 175 135" stroke="#1c2530" strokeWidth="1.5" fill="none" />
+                  <path d="M 100 225 L 175 145" stroke="#1c2530" strokeWidth="1.5" fill="none" />
+                  <path d="M 300 50 L 225 135" stroke="#1c2530" strokeWidth="1.5" fill="none" />
+                  <path d="M 300 225 L 225 145" stroke="#1c2530" strokeWidth="1.5" fill="none" />
+                  <path d="M 200 150 L 200 240" stroke="#1c2530" strokeWidth="2" fill="none" />
+
+                  {/* Flow Overlays */}
+                  {/* Solar -> Bus */}
+                  {snapshot.solarGen > 0 && (
+                    <path d="M 100 50 L 175 135" stroke="#f5a623" strokeWidth="2" fill="none" className="flow-active" />
+                  )}
+                  {/* Wind -> Bus */}
+                  {snapshot.windGen > 0 && (
+                    <path d="M 100 225 L 175 145" stroke="#22d3ee" strokeWidth="2" fill="none" className="flow-active" />
+                  )}
+                  {/* Battery Charge (Bus -> Battery) */}
+                  {snapshot.batteryCharge > 0 && (
+                    <path d="M 225 135 L 300 50" stroke="#34d399" strokeWidth="2" fill="none" className="flow-active" />
+                  )}
+                  {/* Battery Discharge (Battery -> Bus) */}
+                  {snapshot.batteryCharge < 0 && (
+                    <path d="M 300 50 L 225 135" stroke="#34d399" strokeWidth="2" fill="none" className="flow-reverse" />
+                  )}
+                  {/* Grid Export (Bus -> Grid) */}
+                  {snapshot.gridExport > 0 && (
+                    <path d="M 225 145 L 300 225" stroke="#60a5fa" strokeWidth="2" fill="none" className="flow-active" />
+                  )}
+                  {/* Grid Import (Grid -> Bus) */}
+                  {snapshot.gridImport > 0 && (
+                    <path d="M 300 225 L 225 145" stroke="#fb7185" strokeWidth="2" fill="none" className="flow-reverse" />
+                  )}
+                  {/* Bus -> Load */}
+                  {snapshot.load > 0 && (
+                    <path d="M 200 150 L 200 240" stroke="#a1a1aa" strokeWidth="2.5" fill="none" className="flow-active" />
+                  )}
+                </svg>
+              </div>
+            </div>
+            
+            {/* System Console Feed & Auto-Play controls (1 col) */}
+            <div className="rounded-xl border border-panel-border bg-panel/60 p-5 shadow-lg flex flex-col justify-between gap-4">
+              <div className="border-b border-panel-border/50 pb-3 flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Terminal className="w-4 h-4 text-solar" />
+                  <span className="font-chakra text-sm font-bold text-white tracking-wider">TELEMETRY SYSTEM CONTROLLER</span>
+                </div>
+              </div>
+
+              {/* Playback Controls */}
+              <div className="p-3 bg-black/40 rounded-lg border border-panel-border space-y-3">
+                <div className="flex justify-between items-center text-[10px] text-gray-500">
+                  <span>AUTOPLAY STATUS:</span>
+                  <span className={`font-bold tracking-wider ${isPlaying ? 'text-battery' : 'text-gray-400'}`}>
+                    {isPlaying ? 'RUNNING AUTOMATION' : 'MANUAL PAUSED'}
+                  </span>
+                </div>
+                
+                <div className="flex justify-center items-center gap-4">
+                  <button 
+                    onClick={() => setSelectedHour(prev => (prev - 1 + 24) % 24)}
+                    className="p-1.5 rounded border border-panel-border text-gray-400 hover:text-white hover:border-wind"
+                    title="Previous Hour"
+                  >
+                    <SkipBack className="w-4 h-4" />
+                  </button>
+
+                  <button 
+                    onClick={() => setIsPlaying(!isPlaying)}
+                    className={`p-2.5 rounded-full border shadow-md transition-all ${
+                      isPlaying 
+                        ? 'bg-battery text-black border-battery hover:scale-105' 
+                        : 'bg-solar text-black border-solar hover:scale-105'
+                    }`}
+                  >
+                    {isPlaying ? <Pause className="w-4 h-4 fill-black" /> : <Play className="w-4 h-4 fill-black" />}
+                  </button>
+
+                  <button 
+                    onClick={() => setSelectedHour(prev => (prev + 1) % 24)}
+                    className="p-1.5 rounded border border-panel-border text-gray-400 hover:text-white hover:border-wind"
+                    title="Next Hour"
+                  >
+                    <SkipForward className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="flex justify-between items-center border-t border-panel-border/40 pt-2 text-[10px]">
+                  <span className="text-gray-500">SCAN VELOCITY:</span>
+                  <div className="flex gap-1.5">
+                    {[
+                      { label: '0.5s', value: 500 },
+                      { label: '1.0s', value: 1000 },
+                      { label: '2.0s', value: 2000 }
+                    ].map(opt => (
+                      <button
+                        key={opt.value}
+                        onClick={() => setPlaySpeed(opt.value)}
+                        className={`px-1.5 py-0.5 rounded border text-[9px] ${
+                          playSpeed === opt.value
+                            ? 'bg-wind text-black border-wind font-bold'
+                            : 'bg-black/30 border-panel-border text-gray-400 hover:text-white'
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Scrolling Terminal Console */}
+              <div className="flex-1 min-h-[120px] bg-black/60 border border-panel-border/80 rounded-lg p-2.5 font-mono text-[9px] text-green-400 overflow-y-auto max-h-[160px] relative scroll-smooth">
+                {summary.hourlyResults.map((r) => {
+                  const hrStr = `${String(r.hour).padStart(2, '0')}:00`;
+                  const solarText = r.solarGen > 0 ? `SOL:${r.solarGen.toFixed(1)}k` : '';
+                  const windText = r.windGen > 0 ? `WND:${r.windGen.toFixed(1)}k` : '';
+                  const genParts = [solarText, windText].filter(Boolean).join('+');
+                  const genStr = genParts ? `Gen:${genParts}` : 'Gen:0.0k';
+                  
+                  let actionStr = '';
+                  if (r.gridExport > 0) {
+                    actionStr = `EXP:${r.gridExport.toFixed(1)}k`;
+                  } else if (r.gridImport > 0) {
+                    actionStr = `IMP:${r.gridImport.toFixed(1)}k`;
+                  } else if (r.batteryCharge > 0) {
+                    actionStr = `CHG:${r.batteryCharge.toFixed(1)}k`;
+                  } else if (r.batteryCharge < 0) {
+                    actionStr = `DCHG:${Math.abs(r.batteryCharge).toFixed(1)}k`;
+                  } else {
+                    actionStr = `BALANCED`;
+                  }
+
+                  const isActive = r.hour === selectedHour;
+                  return (
+                    <div 
+                      key={r.hour}
+                      className={`py-0.5 px-1.5 rounded transition-all duration-300 ${
+                        isActive 
+                          ? 'bg-green-500/10 text-green-300 font-bold border border-green-500/25 shadow-[0_0_8px_rgba(34,197,94,0.1)]' 
+                          : 'opacity-50 text-green-500/80'
+                      }`}
+                    >
+                      &gt; {hrStr} // {genStr} || Load:{r.load.toFixed(1)}k || {actionStr} [SOC:{r.batterySOCPercent.toFixed(0)}%]
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* CSV Telemetry Downloader */}
+              <button
+                onClick={() => {
+                  const headers = ['Hour', 'Solar Gen (kW)', 'Wind Gen (kW)', 'Load (kW)', 'Battery SOC (%)', 'Battery Charge (kW)', 'Grid Import (kW)', 'Grid Export (kW)', 'Status'];
+                  const rows = summary.hourlyResults.map(r => [
+                    `${r.hour}:00`,
+                    r.solarGen.toFixed(2),
+                    r.windGen.toFixed(2),
+                    r.load.toFixed(2),
+                    r.batterySOCPercent.toFixed(1),
+                    r.batteryCharge.toFixed(2),
+                    r.gridImport.toFixed(2),
+                    r.gridExport.toFixed(2),
+                    r.status
+                  ]);
+                  const csvContent = "data:text/csv;charset=utf-8," 
+                    + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+                  const encodedUri = encodeURI(csvContent);
+                  const link = document.createElement("a");
+                  link.setAttribute("href", encodedUri);
+                  link.setAttribute("download", "hres_telemetry_history.csv");
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                }}
+                className="w-full flex items-center justify-center gap-2 py-2 border border-panel-border bg-panel hover:bg-white/5 text-white font-chakra text-xs font-bold rounded-lg hover:border-solar/50 transition-colors"
+              >
+                <Download className="w-3.5 h-3.5 text-solar" />
+                <span>EXPORT CSV TELEMETRY LOG</span>
+              </button>
             </div>
           </div>
 
