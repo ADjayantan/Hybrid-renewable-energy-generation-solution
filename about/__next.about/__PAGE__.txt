@@ -1,0 +1,9 @@
+1:"$Sreact.fragment"
+2:I[2982,["/Hybrid-renewable-energy-generation-solution/_next/static/chunks/090coi2y_gzeu.js","/Hybrid-renewable-energy-generation-solution/_next/static/chunks/06m0qfffuqnpo.js","/Hybrid-renewable-energy-generation-solution/_next/static/chunks/306m_8u7kdsjp.js"],"ClientPageRoot"]
+3:I[23807,["/Hybrid-renewable-energy-generation-solution/_next/static/chunks/090coi2y_gzeu.js","/Hybrid-renewable-energy-generation-solution/_next/static/chunks/06m0qfffuqnpo.js","/Hybrid-renewable-energy-generation-solution/_next/static/chunks/306m_8u7kdsjp.js","/Hybrid-renewable-energy-generation-solution/_next/static/chunks/013a-0tgbanrg.js"],"default"]
+6:I[70838,["/Hybrid-renewable-energy-generation-solution/_next/static/chunks/090coi2y_gzeu.js","/Hybrid-renewable-energy-generation-solution/_next/static/chunks/06m0qfffuqnpo.js","/Hybrid-renewable-energy-generation-solution/_next/static/chunks/306m_8u7kdsjp.js"],"OutletBoundary"]
+7:"$Sreact.suspense"
+0:{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"Component":"$3","serverProvidedParams":{"searchParams":{},"params":{},"promises":["$@4","$@5"]}}],[["$","script","script-0",{"src":"/Hybrid-renewable-energy-generation-solution/_next/static/chunks/013a-0tgbanrg.js","async":true}]],["$","$L6",null,{"children":["$","$7",null,{"name":"Next.MetadataOutlet","children":"$@8"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"d0TI5R3I_BnelzCsTabVM"}
+4:{}
+5:"$0:rsc:props:children:0:props:serverProvidedParams:params"
+8:null
